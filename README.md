@@ -13,13 +13,12 @@ This API is hosted natively as a C# Application running under **Internet Informa
 
 ## ⚙️ Configuration & Security
 
-The API runs directly on the local network via IIS. Outgoing updates (like webhooks sent back to Odoo) are secured using the following Authentication Token:
+The API runs directly on the local network via IIS. Because the integration uses a **polling architecture** (Odoo requests data directly from the API), the API is completely open on the local network and relies on your Windows Firewall for security. 
 
-**Webhook Auth Token:**
-`HAVANO-API-8156-TOKEN-X9F2M1Q4-L8P3B7C2`
+**No JWT tokens or Webhook tokens are required.**
 
 ### Sage Evolution Database Configuration
-The API is currently configured to connect to the following Sage Evolution database. The default warehouse for all missing or unspecified stock transactions is explicitly set to `Mstr`.
+The API connects to Sage Evolution using the settings defined in your `appsettings.json` file. Here are the default settings:
 
 ```json
 "SageEvolution": {
@@ -30,7 +29,7 @@ The API is currently configured to connect to the following Sage Evolution datab
     "Password": "hT9mX4vQ2pL7dK3z",
     "SerialNumber": "DE12111066",
     "ActivationKey": "9824686",
-    "DefaultWarehouseCode": "Mstr"
+    "DefaultWarehouseCode": "MS"
 }
 ```
 
@@ -98,7 +97,7 @@ Creates a new customer or updates an existing customer in Sage Evolution.
 `POST /api/Inventory`
 `PUT /api/Inventory`
 
-Creates a new inventory item in Sage, automatically linking it to the default warehouse (`Mstr`) and assigning it to the required item groups.
+Creates a new inventory item in Sage, automatically linking it to the default warehouse (`MS`) and assigning it to the required item groups.
 
 **Payload Example:**
 ```json
@@ -134,7 +133,7 @@ Creates a Sales Order or a Quotation in Sage.
   "Lines": [
     {
       "ItemCode": "ITEM100",
-      "WarehouseCode": "Mstr",
+      "WarehouseCode": "MS",
       "Quantity": 2,
       "UnitPrice": 150.00,
       "TaxTypeId": 1
@@ -175,7 +174,7 @@ Creates a Purchase Order in Sage Evolution.
   "Lines": [
     {
       "ItemCode": "ITEM100",
-      "WarehouseCode": "Mstr",
+      "WarehouseCode": "MS",
       "Quantity": 50,
       "UnitPrice": 95.00
     }
@@ -196,7 +195,7 @@ Receives the goods in Sage, moving the stock into the warehouse and archiving th
   "Lines": [
     {
       "ItemCode": "ITEM100",
-      "WarehouseCode": "Mstr",
+      "WarehouseCode": "MS",
       "QuantityToProcess": 50
     }
   ]
