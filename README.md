@@ -35,31 +35,29 @@ The API connects to Sage Evolution using the settings defined in your `appsettin
 
 ---
 
+## 🔄 Sync (Polling Architecture)
+*Odoo polls these endpoints periodically to fetch newly modified data from Sage.*
+
+* `GET /api/Sync/changes` - Polls for any new, updated, or deleted records (Inventory, Customers, Suppliers, etc.)
+* `POST /api/Sync/changes/{id}/acknowledge` - Acknowledges a change has been successfully synced to Odoo so it is cleared from the queue.
+* `POST /api/Sync/changes/{id}/fail` - Marks a change as failed during Odoo sync so it can be retried later.
+
+---
+
 ## 👥 Customers
 
-### 1. Create or Update Customer
-`POST /api/Customers`
-`PUT /api/Customers`
+* `GET /api/Customers` - Retrieves all customers
+* `GET /api/Customers/{code}` - Retrieves a specific customer by Code
+* `POST /api/Customers` - Creates a new customer
+* `PUT /api/Customers` - Updates an existing customer
 
-Creates a new customer or updates an existing customer in Sage Evolution.
-
-**Payload Example:**
+**Creation/Update Payload Example:**
 ```json
 {
   "Code": "CUST001",
   "Name": "Acme Corp",
-  "Description": "Acme Corporation HQ",
-  "PhysicalAddress": {
-    "Line1": "123 Main St",
-    "Line2": "Suite 500",
-    "City": "New York",
-    "PostalCode": "10001"
-  },
-  "PostalAddress": {
-    "Line1": "PO BOX 123",
-    "City": "New York",
-    "PostalCode": "10001"
-  },
+  "PhysicalAddress": { "Line1": "123 Main St", "City": "New York", "PostalCode": "10001" },
+  "PostalAddress": { "Line1": "PO BOX 123", "City": "New York", "PostalCode": "10001" },
   "Telephone": "555-1234",
   "Email": "billing@acme.com",
   "TaxNumber": "TAX123456",
@@ -72,16 +70,16 @@ Creates a new customer or updates an existing customer in Sage Evolution.
 
 ## 🏭 Suppliers
 
-### 1. Create or Update Supplier
-`POST /api/Suppliers`
-`PUT /api/Suppliers`
+* `GET /api/Suppliers` - Retrieves all suppliers
+* `GET /api/Suppliers/{id}` - Retrieves a specific supplier
+* `POST /api/Suppliers` - Creates a new supplier
+* `PUT /api/Suppliers` - Updates an existing supplier
 
-**Payload Example:**
+**Creation/Update Payload Example:**
 ```json
 {
   "Code": "SUPP001",
   "Name": "Global Supplies Ltd",
-  "Description": "Hardware Vendor",
   "Telephone": "555-9876",
   "Email": "orders@globalsupplies.com",
   "TaxNumber": "VAT987654",
@@ -91,15 +89,16 @@ Creates a new customer or updates an existing customer in Sage Evolution.
 
 ---
 
-## 📦 Inventory (Products)
+## 📦 Inventory (Products & Warehouses)
 
-### 1. Create or Update Product
-`POST /api/Inventory`
-`PUT /api/Inventory`
+* `GET /api/Inventory` - Retrieves all inventory items
+* `GET /api/Inventory/{id}` - Retrieves a specific item
+* `POST /api/Inventory` - Creates a new inventory item
+* `PUT /api/Inventory` - Updates an existing inventory item
+* `GET /api/Inventory/warehouses` - Retrieves all warehouses
+* `POST /api/Inventory/warehouse` - Assigns an item to a specific warehouse
 
-Creates a new inventory item in Sage, automatically linking it to the default warehouse (`Mstr`) and assigning it to the required item groups.
-
-**Payload Example:**
+**Creation/Update Payload Example:**
 ```json
 {
   "Code": "ITEM100",
@@ -114,14 +113,16 @@ Creates a new inventory item in Sage, automatically linking it to the default wa
 
 ## 🛒 Sales
 
-### 1. Create Sales Order or Quotation
-`POST /api/Sales/orders`
+* `GET /api/Sales` - Retrieves sales history
+* `GET /api/Sales/orders` - Retrieves all Sales Orders
+* `GET /api/Sales/orders/{id}` - Retrieves a specific Sales Order
+* `GET /api/Sales/invoices` - Retrieves all Sales Invoices
+* `POST /api/Sales/orders` - Creates a new Sales Order (or Quotation if `"IsQuotation": true`)
+* `PUT /api/Sales/orders/{orderNo}` - Updates an existing Sales Order
+* `POST /api/Sales/orders/{orderNumber}/invoice` - Processes a Sales Order into a Tax Invoice
+* `POST /api/Sales/credit-notes` - Creates a Credit Note
 
-Creates a Sales Order or a Quotation in Sage. 
-* To create a Quotation, set `"IsQuotation": true`. 
-* To instantly process the order into an Invoice, set `"IsProcessed": true`.
-
-**Payload Example:**
+**Create Sales Order Payload Example:**
 ```json
 {
   "CustomerCode": "CUST001",
@@ -142,29 +143,21 @@ Creates a Sales Order or a Quotation in Sage.
 }
 ```
 
-### 2. Process Sales Order into Invoice
-`POST /api/Sales/orders/{orderNumber}/invoice`
-
-Converts a pre-existing Sales Order in Sage into a finalized Tax Invoice.
-
-**Payload Example:**
-```json
-{
-  "OrderNumber": "SO-1025",
-  "InvoiceNo": "INV-1025"
-}
-```
-
 ---
 
 ## 🚚 Purchases
 
-### 1. Create Purchase Order
-`POST /api/Purchase/orders`
+* `GET /api/Purchase` - Retrieves purchase history
+* `GET /api/Purchase/orders` - Retrieves all Purchase Orders
+* `GET /api/Purchase/orders/{id}` - Retrieves a specific Purchase Order
+* `GET /api/Purchase/invoices` - Retrieves all Purchase Invoices
+* `POST /api/Purchase/orders` - Creates a new Purchase Order
+* `PUT /api/Purchase/orders/{orderNo}` - Updates an existing Purchase Order
+* `POST /api/Purchase/orders/grv` - Receives goods into the warehouse and creates a GRV
+* `POST /api/Purchase/orders/{orderNumber}/invoice` - Finalizes a GRV into a Supplier Invoice
+* `POST /api/Purchase/returns` - Creates a Return To Supplier (RTS) document
 
-Creates a Purchase Order in Sage Evolution.
-
-**Payload Example:**
+**Create Purchase Order Payload Example:**
 ```json
 {
   "SupplierCode": "SUPP001",
@@ -182,60 +175,17 @@ Creates a Purchase Order in Sage Evolution.
 }
 ```
 
-### 2. Process Purchase Order into GRV (Receive Goods)
-`POST /api/Purchase/orders/grv`
-
-Receives the goods in Sage, moving the stock into the warehouse and archiving the Purchase Order into a GRV.
-
-**Payload Example:**
-```json
-{
-  "OrderNumber": "PO-5050",
-  "ExternalOrderNo": "PO-5050",
-  "Lines": [
-    {
-      "ItemCode": "ITEM100",
-      "WarehouseCode": "Mstr",
-      "QuantityToProcess": 50
-    }
-  ]
-}
-```
-
-### 3. Create Supplier Invoice (Bill)
-`POST /api/Purchase/orders/{orderNumber}/invoice`
-
-Finalizes the GRV into a Supplier Invoice in Sage.
-
-**Payload Example:**
-```json
-{
-  "OrderNumber": "PO-5050",
-  "SupplierInvoiceNo": "BILL-998877"
-}
-```
-
 ---
 
 ## 🕵️‍♂️ Agents (Users)
 
-### 1. Get All Agents
-`GET /api/Agents`
+* `GET /api/Agents` - Retrieves a list of all Agents/Users from Sage.
+* `POST /api/Agents` - Creates a new Agent.
 
-Retrieves a list of all Agents/Users from Sage.
+---
 
-**Response Example:**
-```json
-[
-  {
-    "id": 1,
-    "name": "Admin",
-    "active": true
-  },
-  {
-    "id": 2,
-    "name": "John Doe",
-    "active": true
-  }
-]
-```
+## 🗄️ General Ledger & Accounts
+
+* `POST /api/Accounts` - Creates a new GL Account
+* `PUT /api/Accounts` - Updates an existing GL Account
+* `POST /api/Journals` - Posts a new Journal entry to the GL
