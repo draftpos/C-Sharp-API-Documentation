@@ -29,7 +29,7 @@ The API connects to Sage Evolution using the settings defined in your `appsettin
     "Password": "hT9mX4vQ2pL7dK3z",
     "SerialNumber": "DE12111066",
     "ActivationKey": "9824686",
-    "DefaultWarehouseCode": "MS"
+    "DefaultWarehouseCode": "Mstr"
 }
 ```
 
@@ -97,7 +97,7 @@ Creates a new customer or updates an existing customer in Sage Evolution.
 `POST /api/Inventory`
 `PUT /api/Inventory`
 
-Creates a new inventory item in Sage, automatically linking it to the default warehouse (`MS`) and assigning it to the required item groups.
+Creates a new inventory item in Sage, automatically linking it to the default warehouse (`Mstr`) and assigning it to the required item groups.
 
 **Payload Example:**
 ```json
@@ -133,7 +133,7 @@ Creates a Sales Order or a Quotation in Sage.
   "Lines": [
     {
       "ItemCode": "ITEM100",
-      "WarehouseCode": "MS",
+      "WarehouseCode": "Mstr",
       "Quantity": 2,
       "UnitPrice": 150.00,
       "TaxTypeId": 1
@@ -174,7 +174,7 @@ Creates a Purchase Order in Sage Evolution.
   "Lines": [
     {
       "ItemCode": "ITEM100",
-      "WarehouseCode": "MS",
+      "WarehouseCode": "Mstr",
       "Quantity": 50,
       "UnitPrice": 95.00
     }
@@ -195,7 +195,7 @@ Receives the goods in Sage, moving the stock into the warehouse and archiving th
   "Lines": [
     {
       "ItemCode": "ITEM100",
-      "WarehouseCode": "MS",
+      "WarehouseCode": "Mstr",
       "QuantityToProcess": 50
     }
   ]
